@@ -1,9 +1,14 @@
 package service
 
 import (
+	"azhumania/internal/application/handlers"
+	"azhumania/internal/application/services"
+	infraRepos "azhumania/internal/infrastructure/repositories"
 	"azhumania/internal/repository/cache/redis"
 	"azhumania/internal/repository/database/psql"
+	"context"
 	"errors"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rs/zerolog"
 )
@@ -15,13 +20,12 @@ type IService interface {
 }
 
 type service struct {
-	db    psql.IDatabase
-	cache redis.ICache
-
-	logger zerolog.Logger
+	messageHandler *handlers.MessageHandler
+	logger         zerolog.Logger
 }
 
 func New(psql_dsn, redis_host, redis_username, redis_password string, redis_db int, logger zerolog.Logger) (IService, error) {
+	// Инициализируем репозитории
 	db, err := psql.New(psql_dsn, logger)
 	if err != nil {
 		return nil, err
@@ -32,10 +36,25 @@ func New(psql_dsn, redis_host, redis_username, redis_password string, redis_db i
 		return nil, errors.New("redis connection error")
 	}
 
-	return &service{
-		db:    db,
-		cache: cache,
+	// Создаем адаптеры репозиториев
+	userRepo := infraRepos.NewUserRepositoryAdapter(db, cache, logger)
+	pushupRepo := infraRepos.NewPushupRepositoryAdapter(db, cache, logger)
 
-		logger: logger,
+	// Создаем сервисы
+	userService := services.NewUserService(userRepo)
+	pushupService := services.NewPushupService(pushupRepo)
+
+	// Создаем обработчики
+	commandHandler := handlers.NewCommandHandler(userService, pushupService)
+	messageHandler := handlers.NewMessageHandler(userService, pushupService, commandHandler, logger)
+
+	return &service{
+		messageHandler: messageHandler,
+		logger:         logger,
 	}, nil
+}
+
+func (s *service) Handle(msg *tgbotapi.Message) string {
+	ctx := context.Background()
+	return s.messageHandler.Handle(ctx, msg)
 }

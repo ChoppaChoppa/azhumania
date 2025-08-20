@@ -3,6 +3,7 @@ package psql
 import (
 	"azhumania/internal/repository/models"
 	"context"
+
 	"github.com/Masterminds/squirrel"
 )
 
@@ -45,12 +46,12 @@ func (r *repository) AddAzhumania(ctx context.Context, azhumania models.Azhumani
 		ToSql()
 	if err != nil {
 		r.logger.Error().Err(err).Msg("error repo AddAzhumania.ToSql")
-		return 0, err
+		return err
 	}
 
 	if _, err = r.db.ExecContext(ctx, query, args...); err != nil {
 		r.logger.Error().Err(err).Msg("error repo AddAzhumania.ExecContext")
-		return 0, err
+		return err
 	}
 
 	return nil
