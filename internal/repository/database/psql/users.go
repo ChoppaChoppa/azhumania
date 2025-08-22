@@ -21,16 +21,9 @@ func (r *repository) GetUser(ctx context.Context, userID int64) (user models.Use
 		return
 	}
 
-	rows, err := r.db.QueryxContext(ctx, query, args...)
+	err = r.db.QueryRowxContext(ctx, query, args...).StructScan(&user)
 	if err != nil {
 		r.logger.Error().Err(err).Msg("error repo GetUser.QueryxContext")
-		return
-	}
-
-	defer rows.Close()
-
-	if err = rows.StructScan(&user); err != nil {
-		r.logger.Error().Err(err).Msg("error repo GetUser.StructScan")
 		return
 	}
 
@@ -55,7 +48,8 @@ func (r *repository) AddUser(ctx context.Context, user models.User) (int64, erro
 		return 0, err
 	}
 
-	if err = r.db.SelectContext(ctx, user.ID, query, args...); err != nil {
+	_, err = r.db.ExecContext(ctx, query, args...)
+	if err != nil {
 		r.logger.Error().Err(err).Msg("error repo AddUser.ExecContext")
 		return 0, err
 	}

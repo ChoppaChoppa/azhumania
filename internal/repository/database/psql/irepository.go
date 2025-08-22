@@ -16,6 +16,6 @@ type IUsersDatabase interface {
 }
 
 type IAzhumaniaDatabase interface {
-	GetAzhumania(context.Context, int64) (models.Azhumania, error)
+	GetAzhumania(context.Context, int64) ([]models.Azhumania, error)
 	AddAzhumania(context.Context, models.Azhumania) error
 }

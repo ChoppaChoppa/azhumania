@@ -7,7 +7,7 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
-func (r *repository) GetAzhumania(ctx context.Context, userID int64) (azhumania models.Azhumania, err error) {
+func (r *repository) GetAzhumania(ctx context.Context, userID int64) (azhumania []models.Azhumania, err error) {
 	query, args, err := r.builder.
 		Select(
 			"user_id",
@@ -16,6 +16,7 @@ func (r *repository) GetAzhumania(ctx context.Context, userID int64) (azhumania 
 		).
 		From("azhumania").
 		Where(squirrel.Eq{"user_id": userID}).
+		OrderBy("date DESC").
 		ToSql()
 	if err != nil {
 		r.logger.Error().Err(err).Msg("error repo GetAzhumania.ToSql")

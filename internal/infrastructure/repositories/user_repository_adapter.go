@@ -17,11 +17,11 @@ import (
 type UserRepositoryAdapter struct {
 	db     psql.IDatabase
 	cache  redis.ICache
-	logger zerolog.Logger
+	logger *zerolog.Logger
 }
 
 // NewUserRepositoryAdapter создает новый адаптер репозитория пользователей
-func NewUserRepositoryAdapter(db psql.IDatabase, cache redis.ICache, logger zerolog.Logger) repositories.UserRepository {
+func NewUserRepositoryAdapter(db psql.IDatabase, cache redis.ICache, logger *zerolog.Logger) repositories.UserRepository {
 	return &UserRepositoryAdapter{
 		db:     db,
 		cache:  cache,

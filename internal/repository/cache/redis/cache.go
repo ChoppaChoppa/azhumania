@@ -8,10 +8,10 @@ import (
 type repository struct {
 	cache *redis.Client
 
-	logger zerolog.Logger
+	logger *zerolog.Logger
 }
 
-func New(addr, username, password string, db int, logger zerolog.Logger) ICache {
+func New(addr, username, password string, db int, logger *zerolog.Logger) ICache {
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Username: username,

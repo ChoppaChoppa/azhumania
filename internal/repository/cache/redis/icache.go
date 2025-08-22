@@ -16,6 +16,6 @@ type IUsersCache interface {
 }
 
 type IAzhumaniaCache interface {
-	GetAzhumania(context.Context, int64) (models.Azhumania, error)
+	GetAzhumania(context.Context, int64) ([]models.Azhumania, error)
 	SetAzhumania(context.Context, models.Azhumania) error
 }

@@ -16,15 +16,15 @@ import (
 var _ IService = &service{}
 
 type IService interface {
-	Handle(msg *tgbotapi.Message) string
+	Handle(msg *tgbotapi.Message) (string, interface{})
 }
 
 type service struct {
 	messageHandler *handlers.MessageHandler
-	logger         zerolog.Logger
+	logger         *zerolog.Logger
 }
 
-func New(psql_dsn, redis_host, redis_username, redis_password string, redis_db int, logger zerolog.Logger) (IService, error) {
+func New(psql_dsn, redis_host, redis_username, redis_password string, redis_db int, logger *zerolog.Logger) (IService, error) {
 	// Инициализируем репозитории
 	db, err := psql.New(psql_dsn, logger)
 	if err != nil {
@@ -41,11 +41,11 @@ func New(psql_dsn, redis_host, redis_username, redis_password string, redis_db i
 	pushupRepo := infraRepos.NewPushupRepositoryAdapter(db, cache, logger)
 
 	// Создаем сервисы
-	userService := services.NewUserService(userRepo)
-	pushupService := services.NewPushupService(pushupRepo)
+	userService := services.NewUserService(userRepo, logger)
+	pushupService := services.NewPushupService(pushupRepo, logger)
 
 	// Создаем обработчики
-	commandHandler := handlers.NewCommandHandler(userService, pushupService)
+	commandHandler := handlers.NewCommandHandler(userService, pushupService, logger)
 	messageHandler := handlers.NewMessageHandler(userService, pushupService, commandHandler, logger)
 
 	return &service{
@@ -54,7 +54,7 @@ func New(psql_dsn, redis_host, redis_username, redis_password string, redis_db i
 	}, nil
 }
 
-func (s *service) Handle(msg *tgbotapi.Message) string {
+func (s *service) Handle(msg *tgbotapi.Message) (string, interface{}) {
 	ctx := context.Background()
 	return s.messageHandler.Handle(ctx, msg)
 }
